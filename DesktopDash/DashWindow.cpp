@@ -8,8 +8,15 @@ DashWindow::~DashWindow() {
     //TODO
 }
 
+void getWorkAreaSize(int* width, int* height) {
+    RECT workArea;
+    SystemParametersInfo(SPI_GETWORKAREA, 0, &workArea, 0);
+    *width = workArea.right - workArea.left;
+    *height = workArea.bottom - workArea.top;
+}
+
 void DashWindow::init() {
-    int flags = SDL_WINDOW_ALWAYS_ON_TOP;
+    int width, height;
 
     // initialize window
     if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
@@ -18,7 +25,7 @@ void DashWindow::init() {
         window = SDL_CreateWindow("SDL2 Window",
             SDL_WINDOWPOS_CENTERED,
             SDL_WINDOWPOS_CENTERED,
-            64, 64, flags);
+            SIZE, SIZE, SDL_WINDOW_ALWAYS_ON_TOP);
         SDL_SetWindowBordered(window, SDL_FALSE);
         Transparency::enable_transparency(window);
 
@@ -38,16 +45,17 @@ void DashWindow::init() {
         return;
     }
 
-    // initialize pony
-    pony = new Sprite("assets/spritesheet.png", 6, 3, 3, 64, renderer);
-    if (pony->status() != pony->OK) {
-        std::cout << "Could not create pony. Code (" << pony->status() << ") Returning..." << std::endl;
+    // initialize sprite
+    Sprite* sprite = new Sprite("assets/spritesheet.png", 6, 3, 3, SIZE, renderer);
+    if (sprite->status() != sprite->OK) {
+        std::cout << "Could not create pony. Code (" << sprite->status() << ") Returning..." << std::endl;
         isRunning = false;
         return;
     }
 
-    // test
-    pony->play(WALK);
+    // create pony with sprite and given play area
+    getWorkAreaSize(&width, &height);
+    pony = new Pony(sprite, width, height);
 
     isRunning = true;
 
@@ -65,7 +73,7 @@ void DashWindow::handleEvents() {
         break;
     case SDL_MOUSEBUTTONUP:
         if (event.button.button == SDL_BUTTON_LEFT) {
-            //TODO
+            pony->pressed();
         }
     default:
         break;
@@ -73,8 +81,8 @@ void DashWindow::handleEvents() {
 }
 
 void DashWindow::update() {
-    //TODO
-
+    pony->update();
+    SDL_SetWindowPosition(window, pony->getPosition().first, pony->getPosition().second);
 }
 
 void DashWindow::render() {

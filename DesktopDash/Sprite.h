@@ -14,9 +14,12 @@ public:
 
 	void draw();
 
-	void play(int animation) { current_animation = animation; animation_speed = 100; }
-	void play(int animation, int speed) { current_animation = animation; animation_speed = speed; }
+	void play(int animation) { current_animation = animation; animation_speed = 100; animation_terminated = false; animation_start = SDL_GetTicks(); }
+	void play(int animation, int speed) { current_animation = animation; animation_speed = speed; animation_terminated = false; animation_start = SDL_GetTicks(); }
 	void flip() { facingLeft = !facingLeft; }
+	bool isFacingLeft() { return facingLeft; }
+	bool animationTerminated() { return animation_terminated; }
+	int getSize() { return size; }
 	int status() { return errCode; }
 
 	enum errors {
@@ -35,6 +38,8 @@ private:
 
 	int current_animation = 0;
 	int animation_speed = 100;
+	int animation_terminated = false;
+	double animation_start = 0;
 	int size = 0;
 	int frames = 0;
 	bool facingLeft = true;

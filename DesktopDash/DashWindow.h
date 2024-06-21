@@ -2,10 +2,13 @@
 
 #include "SDL.h"
 #include "Sprite.h"
+#include "Pony.h"
 #include "Transparency.h"
 #include <stdio.h>
 #include <iostream>
+#include <utility>
 
+#define SIZE 64
 
 class DashWindow
 {
@@ -24,29 +27,7 @@ public:
 private:
 
     bool isRunning = false;
-    Sprite* pony = nullptr;
+    Pony* pony = nullptr;
     SDL_Window* window = nullptr;
     SDL_Renderer* renderer = nullptr;
-    enum errors;
-
-    enum animation_names {
-        STANCE1,
-        KICK,
-        WALK,
-        LIFTOFF,
-        LANDING,
-        STRETCH,
-        HOVER,
-        POINT,
-        CRY,
-        STANCE2,
-        FLY,
-        BLINK,
-        CONFUSED,
-        TIRED1,
-        TIRED2,
-        STAND,
-        HAND,
-        SLEEP
-    };
 };
