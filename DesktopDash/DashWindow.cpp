@@ -15,6 +15,46 @@ void getWorkAreaSize(int* width, int* height) {
     *height = workArea.bottom - workArea.top;
 }
 
+// Function to get the main window handle of the current process
+HWND GetCurrentProcessMainWindow() {
+    HWND hwnd = NULL;
+    DWORD currentProcessId = GetCurrentProcessId();
+
+    // Enumerate all windows to find the main window of the current process
+    EnumWindows([](HWND hwnd, LPARAM lParam) -> BOOL {
+        DWORD windowProcessId;
+        GetWindowThreadProcessId(hwnd, &windowProcessId);
+        if (windowProcessId == static_cast<DWORD>(lParam)) {
+            *(reinterpret_cast<HWND*>(lParam)) = hwnd;
+            return FALSE; // Stop enumeration
+        }
+        return TRUE; // Continue enumeration
+        }, reinterpret_cast<LPARAM>(&currentProcessId));
+
+    return hwnd;
+}
+
+bool IsWindowFullscreen(HWND hwnd) {
+    // Get the dimensions of the primary monitor
+    HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO monitorInfo;
+    monitorInfo.cbSize = sizeof(MONITORINFO);
+    if (GetMonitorInfo(hMonitor, &monitorInfo)) {
+        // Get the dimensions of the window
+        RECT windowRect;
+        if (GetWindowRect(hwnd, &windowRect)) {
+            // Compare window dimensions with monitor dimensions
+            if (windowRect.left == monitorInfo.rcMonitor.left &&
+                windowRect.top == monitorInfo.rcMonitor.top &&
+                windowRect.right == monitorInfo.rcMonitor.right &&
+                windowRect.bottom == monitorInfo.rcMonitor.bottom) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
 void DashWindow::init() {
     int width, height;
 
@@ -44,6 +84,7 @@ void DashWindow::init() {
         isRunning = false;
         return;
     }
+    self = GetCurrentProcessMainWindow();
 
     // initialize sprite
     Sprite* sprite = new Sprite("assets/spritesheet.png", 6, 3, 3, SIZE, renderer);
@@ -64,9 +105,10 @@ void DashWindow::init() {
 }
 
 void DashWindow::handleEvents() {
+
+    // SDL events
     SDL_Event event;
     SDL_PollEvent(&event);
-
     switch (event.type) {
     case SDL_QUIT:
         isRunning = false;
@@ -78,6 +120,23 @@ void DashWindow::handleEvents() {
     default:
         break;
     }
+
+    //Windows: Detect new window event
+    HWND hwnd = GetForegroundWindow();
+    if (hwnd == NULL || IsWindowFullscreen(hwnd) || hwnd != self) {
+        pony->fullscreen_mode();
+        return;
+    }
+
+    //If not fullscreen, get the window's position and dimensions
+    RECT rect;
+    if (GetWindowRect(hwnd, &rect)) {
+        int width = rect.right - rect.left;
+        int wx = rect.left;
+        int wy = rect.top;
+        pony->window_mode(wx, wy, width);
+    }
+
 }
 
 void DashWindow::update() {
