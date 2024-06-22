@@ -72,13 +72,13 @@ void Pony::update() {
 	case WAKING:
 		sprite->play(sprite->WAKE, 100, 100);
 		break;
-
 	case SLEEPY:
 		sprite->play(sprite->TIRED2, 800, 10000);
 		break;
 
 	case WALKING:
 		sprite->play(sprite->WALK);
+		timeAwake = SDL_GetTicks() - 3000;
 
 		if (abs(targetX - x) < 5 || abs(mousex - x) < 5) {
 			sprite->play(sprite->STAND);
@@ -107,7 +107,7 @@ void Pony::update() {
 		sprite->play(sprite->STAND);
 
 		// Get sleepy after awhile
-		if ((SDL_GetTicks() - timeAwake) / 1000 > 40) {
+		if ((SDL_GetTicks() - timeAwake) / 1000 > 30) {
 			setState(SLEEPY);
 		}
 
@@ -165,7 +165,7 @@ void Pony::update() {
 		break;
 
 	case FLYING:
-
+		timeAwake = SDL_GetTicks() - 3000;
 		sprite->play(sprite->FLY, 100);
 		targetY = floorY;
 		targetX = floorX + (floorWidth / 2);
