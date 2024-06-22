@@ -31,39 +31,43 @@ void Pony::window_mode(int wx, int wy, int width) {
 	floorWidth = width;
 }
 
+// Wakey wakey
 void Pony::pressed() {
+	timeAwake = SDL_GetTicks();
 	if (state[SLEEPING] || state[SLEEPY]) {
-		sprite->play(sprite->WAKE);
-		timeAwake = SDL_GetTicks();
 		if (state[SLEEPING]) y -= 8;
 		setState(WAKING);
-
+		return;
+	}
+	if (state[STANDING]) {
+		sprite->play(sprite->SMILE, 100, 500);
+		timeAwake += 3000;
 	}
 }
 
+// Update based on state
 void Pony::update() {
-	
+
+	// Pony faces the mouse
 	int mousex, mousey;
 	SDL_GetGlobalMouseState(&mousex, &mousey);
 
 	switch (getState()) {
 
+	case SLEEPING:
+		sprite->play(sprite->SLEEP, 800);
+		break;
 	case WAKING:
-		if (sprite->animationTerminated()) {
-			sprite->play(sprite->STAND);
-			setState(STANDING);
-		}
+		sprite->play(sprite->WAKE, 100, 100);
 		break;
 
 	case SLEEPY:
-		if ((SDL_GetTicks() - timeAwake) / 1000 > 50) {
-			sprite->play(sprite->SLEEP, 800);
-			setState(SLEEPING);
-			y += 8;
-		}
+		sprite->play(sprite->TIRED2, 800, 10000);
 		break;
 
 	case WALKING:
+		sprite->play(sprite->WALK);
+
 		if (abs(targetX - x) < 5 || abs(mousex - x) < 5) {
 			sprite->play(sprite->STAND);
 			setState(STANDING);
@@ -80,22 +84,36 @@ void Pony::update() {
 		break;
 
 	case STANDING:
+
+		if (sprite->getCurrentAnim() == sprite->SMILE || sprite->getCurrentAnim() == sprite->LANDING) break;
+
+		sprite->play(sprite->STAND);
+
 		// Get sleepy after awhile
 		if ((SDL_GetTicks() - timeAwake) / 1000 > 40) {
-			sprite->play(sprite->TIRED2, 1000);
 			setState(SLEEPY);
 		}
 
 		// Do a lil stretch after waking up
-		if ((SDL_GetTicks() - timeAwake) / 1000 > 1 && (SDL_GetTicks() - timeAwake) / 1000 < 2 && !state[WAKING]) {
-			sprite->play(sprite->STRETCH, 1000);
-			setState(WAKING);
+		if ((SDL_GetTicks() - timeAwake) / 1000 > 1 && (SDL_GetTicks() - timeAwake) / 1000 < 2) {
+			sprite->play(sprite->STRETCH, 500, 1000);
 			return;
 		}
 
-		//Follow the mouse
-		if (mousex < x - 100) if (!sprite->isFacingLeft()) sprite->flip();
-		if (mousex > x + 100) if (sprite->isFacingLeft()) sprite->flip();
+		if (y != floorY) {
+			sprite->play(sprite->LIFTOFF, 100, 30);
+			setState(HOVERING);
+			return;
+		}
+
+		if (x < floorX || x > floorX + floorWidth) {
+			setState(FLYING);
+			return;
+		}
+
+		// Walk to mouse if its far away
+		if (mousex < x - 100 && !sprite->isFacingLeft()) sprite->flip();
+		if (mousex > x + 100 && sprite->isFacingLeft()) sprite->flip();
 		if (abs(mousex - x) > 400) {
 
 			// Target is either somewhere on the floor, or at its edge
@@ -104,14 +122,77 @@ void Pony::update() {
 				floorX + sprite->getSize() / 2 :
 				floorX + floorWidth - sprite->getSize() / 2;
 			if (!targetX) targetX = 1;
-			sprite->play(sprite->WALK);
 			setState(WALKING);
+		}
+		break;
+
+	case HOVERING:
+
+		if (sprite->getCurrentAnim() == sprite->LIFTOFF) break;
+
+		sprite->play(sprite->HOVER, 100);
+
+		// Set target to new floor
+		targetY = floorY - 20;
+		targetX = floorX + (floorWidth / 2);
+		
+		// Fly up
+		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x--; }
+		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x++; }
+		if (y < targetY) y += 2;
+		if (y > targetY) y -= 2;
+
+		if (abs(y - targetY) < 5) {
+			setState(FLYING);
+		}
+		break;
+
+	case FLYING:
+
+		sprite->play(sprite->FLY, 100);
+		targetY = floorY;
+		targetX = floorX + (floorWidth / 2);
+
+		if (y < targetY) y++;
+		if (y > targetY) y--;
+
+		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x-=2; }
+		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x+=2; }
+
+		if (y == floorY && (x > floorX + 10 && x < floorX + floorWidth - 10)) {
+			sprite->play(sprite->LANDING, 200, 200);
+			setState(STANDING);
 		}
 		break;
 
 	}
 
-
-
 	
+	//Swap transition animations into passive animations after termination
+	if(sprite->animationTerminated()) {
+		switch (sprite->getCurrentAnim()) {
+		case sprite->WAKE:
+			setState(STANDING);
+			break;
+		case sprite->SMILE:
+			sprite->play(STANDING);
+			setState(STANDING);
+			break;
+		case sprite->LIFTOFF:
+			sprite->play(HOVERING);
+			setState(HOVERING);
+			break;
+		case sprite->STRETCH:
+			setState(STANDING);
+			break;
+		case sprite->LANDING:
+			sprite->play(STANDING);
+			setState(STANDING);
+			timeAwake = SDL_GetTicks() + 3000;
+			break;
+		case sprite->TIRED2:
+			setState(SLEEPING);
+			y += 8;
+		}
+	}
 }

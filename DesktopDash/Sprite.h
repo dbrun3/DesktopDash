@@ -14,16 +14,34 @@ public:
 
 	void draw();
 
-	void play(int animation) { 
+	void play(int animation) {
 		if (animation == current_animation) return;
-		current_animation = animation; animation_speed = 100; animation_terminated = false; animation_start = SDL_GetTicks(); }
+		animation_duration = 0;
+		current_animation = animation;
+		animation_speed = 100;
+		animation_terminated = false;
+		animation_start = SDL_GetTicks();
+	}
 	void play(int animation, int speed) { 
 		if (animation == current_animation) return;
-		current_animation = animation; animation_speed = speed; animation_terminated = false; animation_start = SDL_GetTicks(); 
+		animation_duration = 0;
+		current_animation = animation;
+		animation_speed = speed;
+		animation_terminated = false;
+		animation_start = SDL_GetTicks();
+	}
+	void play(int animation, int speed, int duration) {
+		if (animation == current_animation) return;
+		animation_duration = duration;
+		current_animation = animation; 
+		animation_speed = speed; 
+		animation_terminated = false; 
+		animation_start = SDL_GetTicks();
 	}
 	void flip() { facingLeft = !facingLeft; }
 	bool isFacingLeft() { return facingLeft; }
 	bool animationTerminated() { return animation_terminated; }
+	int getCurrentAnim() { return current_animation; }
 	int getSize() { return size; }
 	int status() { return errCode; }
 
@@ -39,13 +57,13 @@ public:
 		WALK,
 		STAND,
 		LANDING,
-		STRETCH, //useless (?)
+		STRETCH, 
 		HOVER,
 		POINT, //useless
 		CRY,
 		STANCE2,
 		FLY,
-		BLINK,
+		SMILE,
 		CONFUSED,
 		TIRED1, //useless
 		TIRED2,
@@ -65,6 +83,7 @@ private:
 	int current_animation = 0;
 	int animation_speed = 100;
 	int animation_terminated = false;
+	int animation_duration = 0;
 	double animation_start = 0;
 	int size = 0;
 	int frames = 0;

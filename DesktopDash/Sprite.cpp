@@ -29,7 +29,8 @@ void Sprite::draw() {
 
 	srcRect.x = srcRect.w * static_cast<int>((((SDL_GetTicks() - (Uint32)animation_start) / animation_speed) % frames) + col);
 	srcRect.y = row * srcRect.h;
-	if (SDL_GetTicks() - (Uint32) animation_start > animation_speed) animation_terminated = true;
+	if (animation_duration && (SDL_GetTicks() - (Uint32)animation_start > animation_duration)) 
+		animation_terminated = true;
 
 	SDL_RendererFlip flip = facingLeft? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
 	TextureManager::Draw(texture, srcRect, destRect, flip, renderer);

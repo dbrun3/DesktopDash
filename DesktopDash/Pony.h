@@ -3,6 +3,8 @@
 #include "Sprite.h"
 #include <utility>
 #include <bitset>
+#include <stdlib.h>
+#include <time.h>
 
 
 class Pony {
@@ -43,7 +45,6 @@ private:
         SLEEPING,
         SLEEPY,
         WAKING,
-        STRETCHING,
         STANDING,
         WALKING,
         HOVERING,
