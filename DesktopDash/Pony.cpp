@@ -177,6 +177,10 @@ void Pony::update() {
 		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x+=6; }
 
 
+		if (abs(y - targetY) > 100) {
+			setState(HOVERING);
+		}
+
 		if (floorX > areaX) {
 			floorY -= 1;
 		}
