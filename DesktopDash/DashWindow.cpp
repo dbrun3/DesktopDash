@@ -91,6 +91,13 @@ void DashWindow::init() {
 
 void DashWindow::handleEvents() {
 
+    // Time-based events
+    if (SDL_GetTicks() % 30000 < 10) {
+        std::cout << "Flyby" << std::endl;
+        pony->flyBy();
+        return;
+    }
+
     // SDL events
     SDL_Event event;
     SDL_PollEvent(&event);
@@ -106,15 +113,16 @@ void DashWindow::handleEvents() {
         break;
     }
 
-    //Windows: Detect new window event
+    //Windows: Detect a new window event
     HWND hwnd = GetForegroundWindow();
-    if (hwnd == NULL || hwnd == self) {
+    if (hwnd == NULL || hwnd == self || !IsWindowVisible(hwnd)) {
         pony->fullscreen_mode();
+        fullscreen = true;
         std::cout << "New fullscreen window active" << std::endl;
         return;
     }
 
-    //If not fullscreen, get the window's position and dimensions
+    //If not fullscreen, constantly the window's position and dimensions in case the user moves it
     RECT rect;
     if (GetWindowRect(hwnd, &rect)) {
         int width = rect.right - rect.left;
@@ -123,14 +131,15 @@ void DashWindow::handleEvents() {
 
         if (wy < 20) {
             pony->fullscreen_mode();
+            fullscreen = true;
             std::cout << "New fullscreen window active" << std::endl;
             return;
         }
 
         pony->window_mode(wx, wy, width);
         std::cout << "New active window at (" << wx << "," << wy << ") width: " << width << std::endl;
+        fullscreen = false;
     }
-
 }
 
 void DashWindow::update() {

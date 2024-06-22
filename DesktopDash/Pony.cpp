@@ -20,15 +20,27 @@ Pony::~Pony() {
 }
 
 void Pony::fullscreen_mode() {
+	if (std::pair<int, int>(0, areaY) == prevFloor) return;
 	floorX = 0;
 	floorY = areaY;
 	floorWidth = areaX;
+	prevFloor = std::pair<int, int>(floorX, floorY);
 }
 
 void Pony::window_mode(int wx, int wy, int width) {
+	if (std::pair<int, int>(wx, wy) == prevFloor) return;
 	floorX = wx;
 	floorY = wy;
 	floorWidth = width;
+	prevFloor = std::pair<int, int>(floorX, floorY);
+}
+
+void Pony::flyBy() {
+	if (state[STANDING]) {
+		floorX = areaX + 30;
+		floorY = y - 1;
+		floorWidth = 30;
+	}
 }
 
 // Wakey wakey
@@ -41,7 +53,7 @@ void Pony::pressed() {
 	}
 	if (state[STANDING]) {
 		sprite->play(sprite->SMILE, 100, 500);
-		timeAwake += 3000;
+		timeAwake -= 3000;
 	}
 }
 
@@ -80,6 +92,11 @@ void Pony::update() {
 		if (targetX < x) {
 			if (!sprite->isFacingLeft()) sprite->flip();
 			x -= 1;
+		}
+		if (y != floorY) {
+			sprite->play(sprite->LIFTOFF, 100, 30);
+			setState(HOVERING);
+			return;
 		}
 		break;
 
@@ -139,8 +156,8 @@ void Pony::update() {
 		// Fly up
 		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x--; }
 		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x++; }
-		if (y < targetY) y += 2;
-		if (y > targetY) y -= 2;
+		if (y < targetY) y += 3;
+		if (y > targetY) y -= 3;
 
 		if (abs(y - targetY) < 5) {
 			setState(FLYING);
@@ -156,8 +173,21 @@ void Pony::update() {
 		if (y < targetY) y++;
 		if (y > targetY) y--;
 
-		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x-=2; }
-		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x+=2; }
+		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x-=6; }
+		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x+=6; }
+
+
+		if (floorX > areaX) {
+			floorY -= 1;
+		}
+
+		if (x >= areaX + 30) {
+			x = -20;
+			y = areaY - 20;
+			floorY = areaY;
+			floorX = 0;
+			floorWidth = areaX;
+		}
 
 		if (y == floorY && (x > floorX + 10 && x < floorX + floorWidth - 10)) {
 			sprite->play(sprite->LANDING, 200, 200);
@@ -188,7 +218,7 @@ void Pony::update() {
 		case sprite->LANDING:
 			sprite->play(STANDING);
 			setState(STANDING);
-			timeAwake = SDL_GetTicks() + 3000;
+			timeAwake = SDL_GetTicks() - 3000;
 			break;
 		case sprite->TIRED2:
 			setState(SLEEPING);
