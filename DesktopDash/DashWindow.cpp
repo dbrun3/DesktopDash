@@ -34,27 +34,6 @@ HWND GetCurrentProcessMainWindow() {
     return hwnd;
 }
 
-bool IsWindowFullscreen(HWND hwnd) {
-    // Get the dimensions of the primary monitor
-    HMONITOR hMonitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTOPRIMARY);
-    MONITORINFO monitorInfo;
-    monitorInfo.cbSize = sizeof(MONITORINFO);
-    if (GetMonitorInfo(hMonitor, &monitorInfo)) {
-        // Get the dimensions of the window
-        RECT windowRect;
-        if (GetWindowRect(hwnd, &windowRect)) {
-            // Compare window dimensions with monitor dimensions
-            if (windowRect.left == monitorInfo.rcMonitor.left &&
-                windowRect.top == monitorInfo.rcMonitor.top &&
-                windowRect.right == monitorInfo.rcMonitor.right &&
-                windowRect.bottom == monitorInfo.rcMonitor.bottom) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 void DashWindow::init() {
     int width, height;
 
@@ -78,13 +57,19 @@ void DashWindow::init() {
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             std::cout << "Start screen renderer created!" << std::endl;
         }
+
+        SDL_SysWMinfo wmInfo;
+        SDL_VERSION(&wmInfo.version);
+        SDL_GetWindowWMInfo(window, &wmInfo);
+        HWND hwnd = wmInfo.info.win.window;
+
+        self = hwnd;
     }
     else {
         std::cout << "Could not create window. Returning..." << std::endl;
         isRunning = false;
         return;
     }
-    self = GetCurrentProcessMainWindow();
 
     // initialize sprite
     Sprite* sprite = new Sprite("assets/spritesheet.png", 6, 3, 3, SIZE, renderer);
@@ -123,8 +108,9 @@ void DashWindow::handleEvents() {
 
     //Windows: Detect new window event
     HWND hwnd = GetForegroundWindow();
-    if (hwnd == NULL || IsWindowFullscreen(hwnd) || hwnd != self) {
+    if (hwnd == NULL || hwnd == self) {
         pony->fullscreen_mode();
+        std::cout << "New fullscreen window active" << std::endl;
         return;
     }
 
@@ -134,7 +120,15 @@ void DashWindow::handleEvents() {
         int width = rect.right - rect.left;
         int wx = rect.left;
         int wy = rect.top;
+
+        if (wy < 20) {
+            pony->fullscreen_mode();
+            std::cout << "New fullscreen window active" << std::endl;
+            return;
+        }
+
         pony->window_mode(wx, wy, width);
+        std::cout << "New active window at (" << wx << "," << wy << ") width: " << width << std::endl;
     }
 
 }
