@@ -92,7 +92,7 @@ void DashWindow::init() {
 void DashWindow::handleEvents() {
 
     // Time-based events
-    if (SDL_GetTicks() % 30000 < 10) {
+    if (SDL_GetTicks() % 60000 < 10) {
         std::cout << "Flyby" << std::endl;
         pony->flyBy();
         return;

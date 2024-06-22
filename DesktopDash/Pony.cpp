@@ -36,7 +36,7 @@ void Pony::window_mode(int wx, int wy, int width) {
 }
 
 void Pony::flyBy() {
-	if (state[STANDING]) {
+	if (getState() == STANDING) {
 		floorX = areaX + 30;
 		floorY = y - 1;
 		floorWidth = 30;
@@ -68,12 +68,24 @@ void Pony::update() {
 
 	case SLEEPING:
 		sprite->play(sprite->SLEEP, 800);
+		if (y != floorY + 8) {
+			setState(HOVERING);
+			return;
+		}
 		break;
 	case WAKING:
 		sprite->play(sprite->WAKE, 100, 100);
+		if (y != floorY) {
+			setState(HOVERING);
+			return;
+		}
 		break;
 	case SLEEPY:
 		sprite->play(sprite->TIRED2, 800, 10000);
+		if (y != floorY) {
+			setState(HOVERING);
+			return;
+		}
 		break;
 
 	case WALKING:
