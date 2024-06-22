@@ -42,8 +42,8 @@ void DashWindow::init() {
         std::cout << "Subsystems Initialized..." << std::endl;
 
         window = SDL_CreateWindow("SDL2 Window",
-            SDL_WINDOWPOS_CENTERED,
-            SDL_WINDOWPOS_CENTERED,
+            -50,
+            -50,
             SIZE, SIZE, SDL_WINDOW_ALWAYS_ON_TOP);
         SDL_SetWindowBordered(window, SDL_FALSE);
         Transparency::enable_transparency(window);
