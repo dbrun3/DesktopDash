@@ -14,8 +14,13 @@ public:
 
 	void draw();
 
-	void play(int animation) { current_animation = animation; animation_speed = 100; animation_terminated = false; animation_start = SDL_GetTicks(); }
-	void play(int animation, int speed) { current_animation = animation; animation_speed = speed; animation_terminated = false; animation_start = SDL_GetTicks(); }
+	void play(int animation) { 
+		if (animation == current_animation) return;
+		current_animation = animation; animation_speed = 100; animation_terminated = false; animation_start = SDL_GetTicks(); }
+	void play(int animation, int speed) { 
+		if (animation == current_animation) return;
+		current_animation = animation; animation_speed = speed; animation_terminated = false; animation_start = SDL_GetTicks(); 
+	}
 	void flip() { facingLeft = !facingLeft; }
 	bool isFacingLeft() { return facingLeft; }
 	bool animationTerminated() { return animation_terminated; }
@@ -26,6 +31,27 @@ public:
 		OK,
 		FILE_NOT_FOUND,
 		MEM_NOT_ALLOCD,
+	};
+
+	enum animation_names {
+		STANCE1,
+		KICK, //useless (?)
+		WALK,
+		STAND,
+		LANDING,
+		STRETCH, //useless (?)
+		HOVER,
+		POINT, //useless
+		CRY,
+		STANCE2,
+		FLY,
+		BLINK,
+		CONFUSED,
+		TIRED1, //useless
+		TIRED2,
+		LIFTOFF,
+		WAKE,
+		SLEEP
 	};
 
 private:
