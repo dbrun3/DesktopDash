@@ -34,7 +34,7 @@ void Pony::fullscreen_mode() {
 }
 
 void Pony::window_mode(int wx, int wy, int width) {
-	if (std::pair<int, int>(wx, wy) == prevFloor) return;
+	if (flyby || std::pair<int, int>(wx, wy) == prevFloor) return;
 	floorX = wx;
 	floorY = wy;
 	floorWidth = width;
