@@ -41,7 +41,7 @@ void DashWindow::init() {
     if (SDL_Init(SDL_INIT_EVERYTHING) == 0) {
         std::cout << "Subsystems Initialized..." << std::endl;
 
-        window = SDL_CreateWindow("SDL2 Window",
+        window = SDL_CreateWindow("Dash",
             -50,
             -50,
             SIZE, SIZE, SDL_WINDOW_ALWAYS_ON_TOP);
@@ -115,9 +115,11 @@ void DashWindow::handleEvents() {
 
     //Windows: Detect a new window event
     HWND hwnd = GetForegroundWindow();
-    if (hwnd == NULL || hwnd == self || !IsWindowVisible(hwnd)) {
+
+    if (hwnd == self) return;
+
+    if (hwnd == NULL || !IsWindowVisible(hwnd) || IsIconic(hwnd)) {
         pony->fullscreen_mode();
-        fullscreen = true;
         std::cout << "New fullscreen window active" << std::endl;
         return;
     }
@@ -131,14 +133,12 @@ void DashWindow::handleEvents() {
 
         if (wy < 20) {
             pony->fullscreen_mode();
-            fullscreen = true;
             std::cout << "New fullscreen window active" << std::endl;
             return;
         }
 
         pony->window_mode(wx, wy, width);
         std::cout << "New active window at (" << wx << "," << wy << ") width: " << width << std::endl;
-        fullscreen = false;
     }
 }
 

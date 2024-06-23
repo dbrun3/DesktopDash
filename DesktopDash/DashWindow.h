@@ -27,7 +27,6 @@ public:
 private:
 
     bool isRunning = false;
-    bool fullscreen = false;
     std::pair<int, int> lastWindow = std::pair<int, int>(0, 0);
     Pony* pony = nullptr;
     SDL_Window* window = nullptr;

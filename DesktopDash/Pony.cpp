@@ -25,6 +25,12 @@ void Pony::fullscreen_mode() {
 	floorY = areaY;
 	floorWidth = areaX;
 	prevFloor = std::pair<int, int>(floorX, floorY);
+
+
+	int t = floorX + (floorWidth / 2);
+	if (flyby || abs(x - t) > floorWidth / 2) { landingOffset = 0; return; }
+	landingOffset = (1.0 - (abs(x - t) / t)) * (floorWidth / 2) * ((x > t)? -1 : 1);
+
 }
 
 void Pony::window_mode(int wx, int wy, int width) {
@@ -33,13 +39,20 @@ void Pony::window_mode(int wx, int wy, int width) {
 	floorY = wy;
 	floorWidth = width;
 	prevFloor = std::pair<int, int>(floorX, floorY);
+
+	int t = floorX + (floorWidth / 2);
+	if (flyby || abs(x - t) > floorWidth / 2) {landingOffset = 0; return;}
+	landingOffset = (1.0 - (abs(x - t) / t)) * (floorWidth / 2) * ((x > t) ? -1 : 1);
 }
 
 void Pony::flyBy() {
+
+	bool flip = !sprite->isFacingLeft();
 	if (getState() == STANDING) {
-		floorX = areaX + 30;
+		floorX = flip? (areaX + 30) : -60;
 		floorY = y - 1;
 		floorWidth = 30;
+		flyby = flip? 1 : -1;
 	}
 }
 
@@ -68,21 +81,21 @@ void Pony::update() {
 
 	case SLEEPING:
 		sprite->play(sprite->SLEEP, 800);
-		if (y != floorY + 8) {
+		if (y != floorY + 8 && y != areaY + 8) {
 			setState(HOVERING);
 			return;
 		}
 		break;
 	case WAKING:
-		sprite->play(sprite->WAKE, 100, 100);
-		if (y != floorY) {
+		sprite->play(sprite->WAKE, 150, 100);
+		if (y != floorY && y != areaY) {
 			setState(HOVERING);
 			return;
 		}
 		break;
 	case SLEEPY:
 		sprite->play(sprite->TIRED2, 800, 10000);
-		if (y != floorY) {
+		if (y != floorY && y != areaY) {
 			setState(HOVERING);
 			return;
 		}
@@ -163,7 +176,7 @@ void Pony::update() {
 
 		// Set target to new floor
 		targetY = floorY - 20;
-		targetX = floorX + (floorWidth / 2);
+		targetX = floorX + (floorWidth / 2) + landingOffset;
 		
 		// Fly up
 		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x--; }
@@ -179,8 +192,10 @@ void Pony::update() {
 	case FLYING:
 		timeAwake = SDL_GetTicks() - 3000;
 		sprite->play(sprite->FLY, 100);
+		
+		// Set target to new floor
 		targetY = floorY;
-		targetX = floorX + (floorWidth / 2);
+		targetX = floorX + (floorWidth / 2) + landingOffset;
 
 		if (y < targetY) y++;
 		if (y > targetY) y--;
@@ -193,19 +208,28 @@ void Pony::update() {
 			setState(HOVERING);
 		}
 
-		if (floorX > areaX) {
+		if ((floorX > areaX || floorX < 0) && flyby) {
 			floorY -= 1;
 		}
 
 		if (x >= areaX + 30) {
 			x = -20;
-			y = areaY - 20;
+			y = areaY - 40;
+			floorY = areaY;
+			floorX = 0;
+			floorWidth = areaX;
+		}
+
+		if (x <= -30) {
+			x = areaX + 20;
+			y = areaY - 40;
 			floorY = areaY;
 			floorX = 0;
 			floorWidth = areaX;
 		}
 
 		if (y == floorY && (x > floorX + 10 && x < floorX + floorWidth - 10)) {
+			flyby = 0;
 			sprite->play(sprite->LANDING, 200, 200);
 			setState(STANDING);
 		}

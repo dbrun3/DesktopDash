@@ -3,8 +3,6 @@
 #include "Sprite.h"
 #include <utility>
 #include <bitset>
-#include <stdlib.h>
-#include <time.h>
 
 
 class Pony {
@@ -35,7 +33,8 @@ private:
     int floorX, floorY, floorWidth = 0; 
     std::pair<int, int> prevFloor = std::pair<int, int>(0, 0);
     int areaX, areaY = 0;
-    bool flyby;
+    int flyby = 0;
+    int landingOffset = 0;
     double timeAwake = 0;
 
     std::bitset<8> state;
