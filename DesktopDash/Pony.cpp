@@ -101,6 +101,10 @@ void Pony::update() {
 		break;
 	case SLEEPY:
 		sprite->play(sprite->TIRED2, 800, 10000);
+		if ((SDL_GetTicks() - timeAwake) / 1000 > 40) {
+			setState(SLEEPING);
+			y += 8;
+		}
 		if (y != floorY && y != areaY) {
 			setState(HOVERING);
 			return;
@@ -255,9 +259,5 @@ void Pony::update() {
 			setState(STANDING);
 			timeAwake = SDL_GetTicks() - 3000;
 			break;
-		case sprite->TIRED2:
-			setState(SLEEPING);
-			y += 8;
-		}
 	}
 }
