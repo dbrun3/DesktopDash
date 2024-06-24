@@ -20,7 +20,7 @@ Pony::~Pony() {
 }
 
 void Pony::fullscreen_mode() {
-	if (std::pair<int, int>(0, areaY) == prevFloor) return;
+	if (flyby || (std::pair<int, int>(0, areaY) == prevFloor)) return;
 	floorX = 0;
 	floorY = areaY;
 	floorWidth = areaX;
@@ -28,20 +28,20 @@ void Pony::fullscreen_mode() {
 
 
 	int t = floorX + (floorWidth / 2);
-	if (flyby || abs(x - t) > floorWidth / 2) { landingOffset = 0; return; }
+	if (abs(x - t) > floorWidth / 2) { landingOffset = 0; return; }
 	landingOffset = (1.0 - (abs(x - t) / t)) * (floorWidth / 2) * ((x > t)? -1 : 1);
 
 }
 
 void Pony::window_mode(int wx, int wy, int width) {
-	if (flyby || std::pair<int, int>(wx, wy) == prevFloor) return;
+	if (flyby || (std::pair<int, int>(wx, wy) == prevFloor)) return;
 	floorX = wx;
 	floorY = wy;
 	floorWidth = width;
 	prevFloor = std::pair<int, int>(floorX, floorY);
 
 	int t = floorX + (floorWidth / 2);
-	if (flyby || abs(x - t) > floorWidth / 2) {landingOffset = 0; return;}
+	if (abs(x - t) > floorWidth / 2) {landingOffset = 0; return;}
 	landingOffset = (1.0 - (abs(x - t) / t)) * (floorWidth / 2) * ((x > t) ? -1 : 1);
 }
 
@@ -144,7 +144,7 @@ void Pony::update() {
 
 		if (y != floorY) {
 			sprite->play(sprite->LIFTOFF, 100, 30);
-			setState(HOVERING);
+			setState(HOVERING); 
 			return;
 		}
 
@@ -209,27 +209,19 @@ void Pony::update() {
 		}
 
 		if ((floorX > areaX || floorX < 0) && flyby) {
-			floorY -= 1;
+			floorY--;
 		}
 
-		if (x >= areaX + 30) {
-			x = -20;
+		if (x >= areaX + 30 || x <= -30) {
+			x = (x <= 30)? areaX + 20 : - 20;
 			y = areaY - 40;
 			floorY = areaY;
 			floorX = 0;
 			floorWidth = areaX;
-		}
-
-		if (x <= -30) {
-			x = areaX + 20;
-			y = areaY - 40;
-			floorY = areaY;
-			floorX = 0;
-			floorWidth = areaX;
+			flyby = 0;
 		}
 
 		if (y == floorY && (x > floorX + 10 && x < floorX + floorWidth - 10)) {
-			flyby = 0;
 			sprite->play(sprite->LANDING, 200, 200);
 			setState(STANDING);
 		}
@@ -250,7 +242,6 @@ void Pony::update() {
 			break;
 		case sprite->LIFTOFF:
 			sprite->play(HOVERING);
-			setState(HOVERING);
 			break;
 		case sprite->STRETCH:
 			setState(STANDING);

@@ -109,6 +109,10 @@ void DashWindow::handleEvents() {
         if (event.button.button == SDL_BUTTON_LEFT) {
             pony->pressed();
         }
+    case SDL_KEYDOWN:
+        if (event.button.button == SDL_BUTTON_RIGHT) {
+            pony->flyBy();
+        }
     default:
         break;
     }
