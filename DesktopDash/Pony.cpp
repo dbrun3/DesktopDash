@@ -49,10 +49,16 @@ void Pony::flyBy() {
 
 	bool flip = !sprite->isFacingLeft();
 	if (getState() == STANDING) {
-		floorX = flip? (areaX + 30) : -60;
-		floorY = y - 1;
-		floorWidth = 30;
+		targetX = flip? (areaX + 50) : -50;
+		targetY = y - 1;
+		floorX = 0;
+		floorY = areaY;
+		floorWidth = areaX;
+		landingOffset = 0;
 		flyby = flip? 1 : -1;
+
+		sprite->play(sprite->LIFTOFF, 100, 30);
+		setState(FLYING);
 	}
 }
 
@@ -171,7 +177,6 @@ void Pony::update() {
 	case HOVERING:
 
 		if (sprite->getCurrentAnim() == sprite->LIFTOFF) break;
-
 		sprite->play(sprite->HOVER, 100);
 
 		// Set target to new floor
@@ -180,9 +185,9 @@ void Pony::update() {
 		
 		// Fly up
 		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x--; }
-		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x++; }
+		else if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x++; }
 		if (y < targetY) y += 3;
-		if (y > targetY) y -= 3;
+		else if (y > targetY) y -= 3;
 
 		if (abs(y - targetY) < 5) {
 			setState(FLYING);
@@ -190,15 +195,18 @@ void Pony::update() {
 		break;
 
 	case FLYING:
+		if (sprite->getCurrentAnim() == sprite->LIFTOFF) break;
 		timeAwake = SDL_GetTicks() - 3000;
 		sprite->play(sprite->FLY, 100);
 		
-		// Set target to new floor
-		targetY = floorY;
-		targetX = floorX + (floorWidth / 2) + landingOffset;
+		// Set target to new floor, unless doing a flyby ofc
+		if (!flyby) {
+			targetY = floorY;
+			targetX = floorX + (floorWidth / 2) + landingOffset;
+		}
 
 		if (y < targetY) y++;
-		if (y > targetY) y--;
+		else if (y > targetY) y--;
 
 		if (targetX < x) { if (!sprite->isFacingLeft()) sprite->flip(); x-=6; }
 		if (targetX > x) { if (sprite->isFacingLeft()) sprite->flip(); x+=6; }
@@ -208,17 +216,13 @@ void Pony::update() {
 			setState(HOVERING);
 		}
 
-		if ((floorX > areaX || floorX < 0) && flyby) {
-			floorY--;
-		}
-
-		if (x >= areaX + 30 || x <= -30) {
-			x = (x <= 30)? areaX + 20 : - 20;
-			y = areaY - 40;
-			floorY = areaY;
-			floorX = 0;
-			floorWidth = areaX;
+		if (x >= areaX + 40 || x <= -40) {
+			x = (x <= 30)? (areaX + 20) : -20;
+			y = areaY - 50;
 			flyby = 0;
+		}
+		else if (flyby){
+			targetY--;
 		}
 
 		if (y == floorY && (x > floorX + 10 && x < floorX + floorWidth - 10)) {
