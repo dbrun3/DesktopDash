@@ -3,6 +3,3 @@
 RD is pretty curious about what you're up to and will fly around your screen to help! However she also gets bored pretty easily and will KO if you don't give her attention here and there. Made with love for Evelyn <3 <br><br> Original art by Pix3M and RadiantKitsune on DeviantArt
 
 ![alt text](https://github.com/dbrun3/DesktopDash/blob/master/Screenshots/sleeping.PNG "Nap time")
-
-Checking out [another Dash program](https://dbrun3.github.io/dashgrader-fe/) I made! 
-![alt text](https://github.com/dbrun3/DesktopDash/blob/master/Screenshots/flying.PNG "Nap time")
